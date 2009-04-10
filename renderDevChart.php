@@ -84,7 +84,7 @@ $Cache = new pCache();
 $Cache->GetFromCache($chartId,$DataSet->GetData()); 
 
 // Flush prevoius imageMap if it exists
-if (file_exists('tmp/' . $MapID && $MapID != '')) { unlink ('tmp/' . $MapID); }
+if (file_exists('tmp/' . $MapID) && $MapID != '') { unlink ('tmp/' . $MapID); }
 
 // Initialise the graph
 $Test = new pChart($wpData['devChartX'],$wpData['devChartY']);
