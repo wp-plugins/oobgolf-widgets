@@ -191,6 +191,6 @@ class widget_oobgolf {
 	
 
 	function deactivate() {
-		delete_option('widget_oobgolf');
+		//delete_option('widget_oobgolf');
 	}
 }

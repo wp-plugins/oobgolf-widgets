@@ -3,7 +3,7 @@
 Plugin Name: oobgolf Widgets
 Plugin URI: http://timlaqua.com/
 Description: Collection of widgets to display oobgolf.com information on your blog
-Version: 1.0.0
+Version: 1.0.2
 Author: Tim Laqua
 Author URI: http://timlaqua.com
 */
