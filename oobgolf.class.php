@@ -185,11 +185,15 @@ class widget_oobgolf {
 		if ( ! get_option('widget_oobgolf')){
 			add_option('widget_oobgolf' , $data);
 		} else {
+			// Propagate existing settings
+			$oldData = get_option('widget_oobgolf');
+			foreach ($oldData as $key => $value) {
+				$data[$key] = $value;
+			}
 			update_option('widget_oobgolf' , $data);
 		}
 	}	
 	
-
 	function deactivate() {
 		//delete_option('widget_oobgolf');
 	}
