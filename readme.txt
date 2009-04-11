@@ -38,5 +38,6 @@ I will try to add suggested widgets in upcoming releases.
 
 == Change Log ==
 
+* 1.0.2 Commented out option clear on deactivation
 * 1.0.1 Fixed ImageMap purge logic
 * 1.0.0 First Release
