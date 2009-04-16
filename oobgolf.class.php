@@ -133,6 +133,14 @@ class widget_oobgolf {
 		<p><label><input class="color" name="widget_oobgolf_devChartScaleColor" type="text" value="<?php echo $data['devChartScaleColor']; ?>" />DevChart Scale</label></p>
 		<p><label><input class="color" name="widget_oobgolf_devChartGridColor" type="text" value="<?php echo $data['devChartGridColor']; ?>" />DevChart Grid</label></p>
 		<p><label><input class="color" name="widget_oobgolf_devChartLegendFontColor" type="text" value="<?php echo $data['devChartLegendFontColor']; ?>" />DevChart Legend Font</label></p>
+		<p><label>
+			<select name="widget_oobgolf_devChartLegendLocation">
+				<option value="tr" <?php if ($data['devChartLegendLocation'] == 'tr') { echo 'SELECTED'; } ?> >Top Right</option>
+				<option value="tl" <?php if ($data['devChartLegendLocation'] == 'tl') { echo 'SELECTED'; } ?> >Top Left</option>
+				<option value="br" <?php if ($data['devChartLegendLocation'] == 'br') { echo 'SELECTED'; } ?> >Bottom Right</option>
+				<option value="bl" <?php if ($data['devChartLegendLocation'] == 'bl') { echo 'SELECTED'; } ?> >Bottom Left</option>
+			</select>Legend Location</label></p>
+
 		<?php
 		if (isset($_POST['widget_oobgolf_devChartX'])){
 			$data['devChartX'] = attribute_escape($_POST['widget_oobgolf_devChartX']);
@@ -141,6 +149,7 @@ class widget_oobgolf {
 			$data['devChartScaleColor'] = attribute_escape($_POST['widget_oobgolf_devChartScaleColor']);
 			$data['devChartGridColor'] = attribute_escape($_POST['widget_oobgolf_devChartGridColor']);
 			$data['devChartLegendFontColor'] = attribute_escape($_POST['widget_oobgolf_devChartLegendFontColor']);
+			$data['devChartLegendLocation'] = attribute_escape($_POST['widget_oobgolf_devChartLegendLocation']);
 
 			update_option('widget_oobgolf', $data);
 		}
@@ -219,7 +228,8 @@ class widget_oobgolf {
 					"devChartScaleColor"		=> "EBEBEB",
 					"devChartGridColor"			=> "323232",
 					"devChartLegendFontColor"	=> "FFFFFF",
-					"roundsToShow"				=> 5
+					"roundsToShow"				=> 5,
+					"devChartLegendLocation"	=> "tr"
 				);
 		
 		/*		// Pre-2.6 compatibility   http://codex.wordpress.org/Determining_Plugin_and_Content_Directories
