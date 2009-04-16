@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: widget,golf,oobgolf
 Requires at least: 2.7
 Tested up to: 2.7.1
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 
 oobgolf Widgets is a plugin that allows you to display various bits of information from your oobgolf.com profile on your blog.
 
