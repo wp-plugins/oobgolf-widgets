@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: widget,golf,oobgolf
 Requires at least: 2.7
 Tested up to: 2.7.1
-Stable tag: 1.0.5
+Stable tag: 1.0.6
 
 oobgolf Widgets is a plugin that allows you to display various bits of information from your oobgolf.com profile on your blog.
 
@@ -47,6 +47,7 @@ I will try to add suggested widgets in upcoming releases.
 
 == Change Log ==
 
+* 1.0.6 Documentation Update
 * 1.0.5 Added Legend Location option to dev chart
 * 1.0.4 Moved user/pass options to admin page, added rounds to show option, added some minimal error handling
 * 1.0.3 Fixed old option propagation
