@@ -71,13 +71,15 @@ foreach ($rows as $row)
 $DataSet->SetXAxisFormat("date");
 
 $chartId = 	"devChart_" . 
+			$wpData['u'] .
 			$wpData['devChartLegendFontColor'] . 
 			$wpData['devChartGridColor'] . 
 			$wpData['devChartScaleColor'] . 
 			$wpData['devChartGraphAreaColor'] . 
 			$wpData['devChartBackground'] . 
 			$wpData['devChartX'] . 
-			$wpData['devChartY'];
+			$wpData['devChartY'] .
+			$wpData['devChartLegendLocation'];
 
 // Cache definition 
 $Cache = new pCache();
@@ -111,8 +113,22 @@ $color = hexrgb($wpData['devChartLegendFontColor']);
 $Test->drawPlotGraph($DataSet->GetData(),$DataSet->GetDataDescription(),3,2,$color[0]-1,$color[1]-1,$color[2]-1);     
 
 // Draw the legend
+switch ($wpData['devChartLegendLocation']) {
+	case "tr":
+		$legendCoords = array($wpData['devChartX']-100, 20);
+		break;
+	case "tl":
+		$legendCoords = array(30, 20);
+		break;
+	case "br":
+		$legendCoords = array($wpData['devChartX']-100, $wpData['devChartY']-100);
+		break;
+	case "bl":
+		$legendCoords = array(30, $wpData['devChartY']-100);
+		break;
+}
 $Test->setFontProperties("Fonts/tahoma.ttf",8);
-$Test->drawLegend($wpData['devChartX']-100,20,$DataSet->GetDataDescription(),0,0,0,0,0,0,$color[0],$color[1],$color[2],FALSE);
+$Test->drawLegend($legendCoords[0],$legendCoords[1],$DataSet->GetDataDescription(),0,0,0,0,0,0,$color[0],$color[1],$color[2],FALSE);
 
 // Render the picture
 $Cache->WriteToCache($chartId,$DataSet->GetData(),$Test); 
