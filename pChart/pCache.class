@@ -72,10 +72,10 @@
    /* This function is making a copy of drawn chart in the cache folder */
    function WriteToCache($ID,$Data,$Picture)
     {
+	 global $pngCompressionLevel;
      $Hash     = $this->GetHash($ID,$Data);
      $FileName = $this->CacheFolder.$Hash;
-
-     imagepng($Picture->Picture,$FileName);
+     imagepng($Picture->Picture,$FileName, (int)$pngCompressionLevel);
     }
 
    /* This function is removing any cached copy of this chart */

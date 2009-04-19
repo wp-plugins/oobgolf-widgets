@@ -3173,6 +3173,8 @@
    /* Render the current picture to a file */
    function Render($FileName)
     {
+	 global $pngCompressionLevel;
+	 
      if ( $this->ErrorReporting )
       $this->printErrors($this->ErrorInterface);
 
@@ -3180,12 +3182,14 @@
      if ( $this->BuildMap )
       $this->SaveImageMap();
 
-     imagepng($this->Picture,$FileName);
+     imagepng($this->Picture,$FileName, $pngCompressionLevel);
     }
 
    /* Render the current picture to STDOUT */
    function Stroke()
     {
+	 global $pngCompressionLevel;
+	 
      if ( $this->ErrorReporting )
       $this->printErrors("GD");
 
@@ -3194,7 +3198,7 @@
       $this->SaveImageMap();
 
      header('Content-type: image/png');
-     imagepng($this->Picture);
+     imagepng($this->Picture, null, $pngCompressionLevel);
     }
 
    /* Private functions for internal processing */

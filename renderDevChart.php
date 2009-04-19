@@ -17,6 +17,7 @@ $Test->getImageMap($MapID, FALSE);
 require('../../../wp-blog-header.php');
 require_once('oobgolf.class.php');
 $wpData = get_option('widget_oobgolf');
+$pngCompressionLevel = (int)$wpData['pngCompressionLevel'];
 
 function hexrgb($hexstr) {
 	$int = hexdec($hexstr);

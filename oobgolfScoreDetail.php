@@ -91,10 +91,10 @@ for($i = 1 ; $i <= $holeCount; $i++)
 }		
 		?>
 		<style>
-			.even { background-color: #EFEFEF; }
-			.evensummary { background-color: #CFCFCF; font-weight: bold; }
-			.odd  { background-color: #DDDDDD; }
-			.oddsummary { background-color: #BBBBBB; font-weight: bold; }
+			.even { background-color: #EFEFEF; border: none;}
+			.evensummary { background-color: #CFCFCF; font-weight: bold;  border: none;}
+			.odd  { background-color: #DDDDDD;  border: none;}
+			.oddsummary { background-color: #BBBBBB; font-weight: bold;  border: none;}
 			.header { background-color: #CCCCFF; }
 			td { text-align: center; }
 			.rowheader { text-align: left; }

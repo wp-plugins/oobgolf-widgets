@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: widget,golf,oobgolf
 Requires at least: 2.7
 Tested up to: 2.7.1
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 
 oobgolf Widgets is a plugin that allows you to display various bits of information from your oobgolf.com profile on your blog.
 
@@ -30,6 +30,7 @@ oobgolf Widgets is a plugin that allows you to display various bits of informati
 **Requirements**
 
 1. PHP GD Library
+2. openssl support (for api requests)
 1. allow_url_fopen must be set to On in your PHP configuration (usually php.ini)
 
 == Frequently Asked Questions ==
@@ -47,6 +48,7 @@ I will try to add suggested widgets in upcoming releases.
 
 == Change Log ==
 
+* 1.0.7 Initial new score posting to Twitter (crude atm), added caching to oobgolf Rounds widget
 * 1.0.6 Documentation Update
 * 1.0.5 Added Legend Location option to dev chart
 * 1.0.4 Moved user/pass options to admin page, added rounds to show option, added some minimal error handling

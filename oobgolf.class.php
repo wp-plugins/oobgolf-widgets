@@ -1,11 +1,17 @@
 <?php
 
+
 class widget_oobgolf {
+	function getUrlContents($url) {
+		$fileContents = file_get_contents($url);
+		return $fileContents;
+	}
+	
 	function getSession () {
  		$data = get_option('widget_oobgolf');
 
 		$url = "https://www.oobgolf.com/api/get_session.php?username=" . $data['u'] . "&password=" . $data['p'] . "&dev=" . $data['apiKey'];
-		$xml = file_get_contents($url);
+		$xml = widget_oobgolf::getUrlContents($url);
 		
 		if (strlen($xml) > 0) {
 			$dom = new DOMDocument;
@@ -36,9 +42,12 @@ class widget_oobgolf {
 	}
 	
 	function getRecentRounds ($session) {
+		$rounds = '';
  		$data = get_option('widget_oobgolf');
+		$localPath = dirname(__FILE__);
+
 		$url = "https://www.oobgolf.com/api/get_scores.php?session=" . $session . "&dev=" . $data['apiKey'];
-		$xml = file_get_contents($url);
+		$xml = widget_oobgolf::getUrlContents($url);
 		
 		$dom = new DOMDocument;
 		$dom = DOMDocument::loadXML($xml);
@@ -46,60 +55,118 @@ class widget_oobgolf {
 		$scores = $dom->getElementsByTagName("score"); 
 
 		$scoreCount = 0;
+		
+		$localDom = new DOMDocument;
+		if (file_exists($localPath . '/Cache/oobgolfWidgets.xml')) {
+			$localDom = DOMDocument::load($localPath . '/Cache/oobgolfWidgets.xml');
+			$localScores = $localDom->getElementsByTagName("scores")->item(0);
+		} else {
+			$rootElement = $localDom->createElement("oobgolfWidgets");
+			$localScores = $localDom->createElement("scores");
+			$localDom->appendChild($rootElement);
+			$rootElement->appendChild($localScores);
+		}
+		
+		$localScoreCount = $localScores->getElementsByTagName("score")->length;
+		$localXpath = new DOMXPath($localDom);
+		
 		foreach( $scores as $score ) 
 		{ 
-			if ($scoreCount < (int)$data['roundsToShow']) {
-				$clubNode = $score->getElementsByTagName("club")->item(0);
-				$courseNode = $clubNode->getElementsByTagName("course")->item(0);
-				$teeNode = $courseNode->getElementsByTagName("tee")->item(0);
-				
-				$courseId = $courseNode->getElementsByTagName("id")->item(0)->nodeValue;
-				$scoreId = $score->getElementsByTagName("id")->item(0)->nodeValue;
-				$scoreUrl = $score->getElementsByTagName("url")->item(0)->nodeValue;
-				$date = $score->getElementsByTagName("date")->item(0)->nodeValue;
-				$grossScore = $score->getElementsByTagName("gross-score")->item(0)->nodeValue;
-				$netScore = $score->getElementsByTagName("net-score")->item(0)->nodeValue;
+			$clubNode = $score->getElementsByTagName("club")->item(0);
+			$courseNode = $clubNode->getElementsByTagName("course")->item(0);
+			$teeNode = $courseNode->getElementsByTagName("tee")->item(0);
+			
+			$courseId = $courseNode->getElementsByTagName("id")->item(0)->nodeValue;
+			$scoreId = $score->getElementsByTagName("id")->item(0)->nodeValue;
+			$scoreUrl = $score->getElementsByTagName("url")->item(0)->nodeValue;
+			$date = $score->getElementsByTagName("date")->item(0)->nodeValue;
+			$grossScore = $score->getElementsByTagName("gross-score")->item(0)->nodeValue;
+			$netScore = $score->getElementsByTagName("net-score")->item(0)->nodeValue;
 
-				$courseName = $courseNode->getElementsByTagName("name")->item(0)->nodeValue;
-				if ($courseName == "") { $courseName = $clubNode->getElementsByTagName("name")->item(0)->nodeValue; }
+			$courseName = $courseNode->getElementsByTagName("name")->item(0)->nodeValue;
+			if ($courseName == "") { $courseName = $clubNode->getElementsByTagName("name")->item(0)->nodeValue; }
+			
+			$usgaSlope = $teeNode->getElementsByTagName("usgaSlope")->item(0)->nodeValue;
+			$usgaRating = $teeNode->getElementsByTagName("usgaRating")->item(0)->nodeValue;
+								
+			if ($scoreCount < (int)$data['roundsToShow']) {
+				$rounds .= "\t\t\t\t\t\t<tr class='oobgolfRoundItem'><td><a href=\"{$data['relativePath']}/oobgolfScoreDetail.php?courseId=$courseId&scoreId=$scoreId&height=240&width=650\" class=\"thickbox\">$date</a></td><td><a href=\"{$data['relativePath']}/oobgolfScoreDetail.php?courseId=$courseId&scoreId=$scoreId&height=240&width=650\" class=\"thickbox\" title='$date - $courseName'>$courseName</a></td><td class='grossScore' style='font-weight: bold;'>$grossScore</td></tr>\n"; 
+				$scoreCount++;				
+			}
+			
+			$localScoreNode = $localXpath->query("/oobgolfWidgets/scores/score[id=$scoreId]");
+			
+			if ($localScoreNode->length == 0) {
+				// New Score, add it.
 				
-				$usgaSlope = $teeNode->getElementsByTagName("usgaSlope")->item(0)->nodeValue;
-				$usgaRating = $teeNode->getElementsByTagName("usgaRating")->item(0)->nodeValue;
+				$newScore = $localDom->createElement("score");
+				$newScoreId = $localDom->createElement("id");
+				$newScore->appendChild($newScoreId);
+				$newText = $localDom->createTextNode($scoreId);
+				$newScoreId->appendChild($newText);
 				
-				
-				echo "\t\t\t\t\t\t<tr class='oobgolfRoundItem'><td><a href=\"{$data['relativePath']}/oobgolfScoreDetail.php?courseId=$courseId&scoreId=$scoreId&height=240&width=650\" class=\"thickbox\">$date</a></td><td><a href=\"{$data['relativePath']}/oobgolfScoreDetail.php?courseId=$courseId&scoreId=$scoreId&height=240&width=650\" class=\"thickbox\" title='$date - $courseName'>$courseName</a></td><td class='grossScore' style='font-weight: bold;'>$grossScore</td></tr>\n"; 
-				$scoreCount++;
+				if ($localScoreCount > 0 && $data['tu'] . $data['tp'] != '') {
+					// This isn't the first load - make tweet if enabled
+					$twitter = new oobgolfWidgetsTwitter($data['tu'],$data['tp']);
+					$status = $twitter->update('Entered a new score on oobgolf.com - ' . $grossScore . ' at ' . $courseName . '.  ' . $scoreUrl);
+					if ($status) {
+						$localScores->appendChild($newScore);
+					}
+				} else {
+					// No previous scores, do the initial population (don't flood tweets when they first turn this on)
+					$localScores->appendChild($newScore);
+				}
 			}
 		}
+		$localDom->save($localPath . '/Cache/oobgolfWidgets.xml');
+		return $rounds;
 	}
 	
 	function renderRecentRounds () {
 		$session = widget_oobgolf::getSession();
+		$data = get_option('widget_oobgolf');
+		$localPath = dirname(__FILE__);
+		$cacheFile = $localPath . '/Cache/recentRounds-' . md5(serialize($data));
 		
-		?>
-		<li class="sidebaritem widget_oobgolf">
-			<div class="sidebarbox" style="display: block;">			
-				<h2 class="widgettitle">oobgolf Rounds</h2>
-				<div id="oobgolfRoundsWidget" style="display: block;">
-					<table id="oobgolfRoundsList" style="width: 100%">
-						<tbody>
-		<?php
-		if ($session != '')
-			$rounds = widget_oobgolf::getRecentRounds($session);
-		else
-			echo 'Unable to contact oobgolf...';
-		
-		?>
-						</tbody>
-					</table>
+		if(file_exists($cacheFile) && filectime($cacheFile) > (mktime() - ($data['oobgolfCacheMinutes'] * 60))) {
+			echo file_get_contents($cacheFile);
+		} else {
+			// No Cache, make new cache
+			
+			if ($session != '')
+				$rounds = widget_oobgolf::getRecentRounds($session);
+			else
+				$rounds = '<tr><td>Unable to contact oobgolf...</td></tr>';
+				
+			$widgetHTML = 
+<<<WIDGETHTML
+			
+			<li class="sidebaritem widget_oobgolf">
+				<div class="sidebarbox" style="display: block;">			
+					<h2 class="widgettitle">oobgolf Rounds</h2>
+					<div id="oobgolfRoundsWidget" style="display: block;">
+						<table id="oobgolfRoundsList" style="width: 100%">
+							<tbody>
+$rounds
+							</tbody>
+						</table>
+					</div>
 				</div>
-			</div>
-		</li>
-		<?php
+			</li>
+WIDGETHTML;
+
+			file_put_contents($cacheFile, $widgetHTML);
+			echo $widgetHTML;
+		}
 	}	
 	
 	function controlRecentRounds () {
 		$data = get_option('widget_oobgolf');
+		if (isset($_POST['widget_oobgolf_recentrounds_toshow'])){
+			$data['roundsToShow'] = attribute_escape($_POST['widget_oobgolf_recentrounds_toshow']);
+			update_option('widget_oobgolf', $data);
+			$data = get_option('widget_oobgolf');
+		}
 		?>
 		<style>
 			input.color { width: 5em; border: 1px solid #aaaaaa; margin-right: .5em; } 
@@ -114,13 +181,23 @@ class widget_oobgolf {
 				<option value="30">30</option>
 			</select>Rounds to Show</label></p>
 		<?php
-		if (isset($_POST['widget_oobgolf_recentrounds_toshow'])){
-			$data['roundsToShow'] = attribute_escape($_POST['widget_oobgolf_recentrounds_toshow']);
-			update_option('widget_oobgolf', $data);
-		}
 	}
 	function controlDevChart () {
 		$data = get_option('widget_oobgolf');
+		if (isset($_POST['widget_oobgolf_devChartX'])){
+			$data['devChartX'] = attribute_escape($_POST['widget_oobgolf_devChartX']);
+			$data['devChartY'] = attribute_escape($_POST['widget_oobgolf_devChartY']);
+			$data['devChartBackground'] = attribute_escape($_POST['widget_oobgolf_devChartBackground']);
+			$data['devChartScaleColor'] = attribute_escape($_POST['widget_oobgolf_devChartScaleColor']);
+			$data['devChartGridColor'] = attribute_escape($_POST['widget_oobgolf_devChartGridColor']);
+			$data['devChartLegendFontColor'] = attribute_escape($_POST['widget_oobgolf_devChartLegendFontColor']);
+			$data['devChartLegendLocation'] = attribute_escape($_POST['widget_oobgolf_devChartLegendLocation']);
+			$data['pngCompressionLevel'] = attribute_escape($_POST['widget_oobgolf_pngCompressionLevel']);
+
+			update_option('widget_oobgolf', $data);
+			$data = get_option('widget_oobgolf');
+		}
+		
 		?>
 		<style>
 			input.color { width: 5em; height: 25px; border: 1px solid #aaaaaa; margin-right: .5em; } 
@@ -140,19 +217,15 @@ class widget_oobgolf {
 				<option value="br" <?php if ($data['devChartLegendLocation'] == 'br') { echo 'SELECTED'; } ?> >Bottom Right</option>
 				<option value="bl" <?php if ($data['devChartLegendLocation'] == 'bl') { echo 'SELECTED'; } ?> >Bottom Left</option>
 			</select>Legend Location</label></p>
+		<p><label>
+			<select name="widget_oobgolf_pngCompressionLevel">
+				<option value="0" <?php if ($data['pngCompressionLevel'] == 0) { echo 'SELECTED'; } ?> >0 (None)</option>
+				<option value="3" <?php if ($data['pngCompressionLevel'] == 3) { echo 'SELECTED'; } ?> >3</option>
+				<option value="6" <?php if ($data['pngCompressionLevel'] == 6) { echo 'SELECTED'; } ?> >6</option>
+				<option value="9" <?php if ($data['pngCompressionLevel'] == 9) { echo 'SELECTED'; } ?> >9 (Max)</option>
+			</select>Chart Compression</label></p>
 
 		<?php
-		if (isset($_POST['widget_oobgolf_devChartX'])){
-			$data['devChartX'] = attribute_escape($_POST['widget_oobgolf_devChartX']);
-			$data['devChartY'] = attribute_escape($_POST['widget_oobgolf_devChartY']);
-			$data['devChartBackground'] = attribute_escape($_POST['widget_oobgolf_devChartBackground']);
-			$data['devChartScaleColor'] = attribute_escape($_POST['widget_oobgolf_devChartScaleColor']);
-			$data['devChartGridColor'] = attribute_escape($_POST['widget_oobgolf_devChartGridColor']);
-			$data['devChartLegendFontColor'] = attribute_escape($_POST['widget_oobgolf_devChartLegendFontColor']);
-			$data['devChartLegendLocation'] = attribute_escape($_POST['widget_oobgolf_devChartLegendLocation']);
-
-			update_option('widget_oobgolf', $data);
-		}
 	}
 
 	function adminMenu () {
@@ -167,20 +240,28 @@ class widget_oobgolf {
 
 		<form method="post" action="">
 		<?php wp_nonce_field('update-options'); ?>
-		
-		<table>
-			<tr><td>oobgolf User</td><td><input type="text" name="u" value="<?php echo $data['u']; ?>" /></td></tr>
-			<tr><td>oobgolf Password</td><td><input type="password" name="p" value="<?php echo $data['p']; ?>" /></td></tr>
-		</table>
+
 		 <?php
 
 			if ($_POST['action'] == "update")
 			{
 				$data['u'] = $_POST['u'];
 				$data['p'] = $_POST['p'];
+				$data['tu'] = $_POST['tu'];
+				$data['tp'] = $_POST['tp'];
+				$data['oobgolfCacheMinutes'] = (int)$_POST['ce'];
 				update_option('widget_oobgolf', $data);
+				$data = get_option('widget_oobgolf');
 			 }
 		 ?>
+		
+		<table>
+			<tr><td>oobgolf User</td><td><input type="text" name="u" value="<?php echo $data['u']; ?>" /></td></tr>
+			<tr><td>oobgolf Password</td><td><input type="password" name="p" value="<?php echo $data['p']; ?>" /></td></tr>
+			<tr><td>twitter User</td><td><input type="text" name="tu" value="<?php echo $data['tu']; ?>" /></td></tr>
+			<tr><td>twitter Password</td><td><input type="password" name="tp" value="<?php echo $data['tp']; ?>" /></td></tr>
+			<tr><td>Cache Expiration (minutes)</td><td><input type="text" name="ce" value="<?php echo $data['oobgolfCacheMinutes']; ?>" /></td></tr>
+		</table>
 		 
 		<input type="hidden" name="page_options" value="null" />
 		<input type="hidden" name="action" value="update" />
@@ -218,6 +299,8 @@ class widget_oobgolf {
 		$data = array(
 					"u"							=>'',
 					"p"							=>'',
+					"tu"						=>'',
+					"tp"						=>'',
 					"apiKey"					=>'K2XLS-C2DL7-MBASA-D23SG',
 					"devChartId"				=> 'Map_devChart.map',
 					"path"						=> get_settings('home').'/wp-content/plugins/'.dirname(plugin_basename(__FILE__)),
@@ -229,7 +312,9 @@ class widget_oobgolf {
 					"devChartGridColor"			=> "323232",
 					"devChartLegendFontColor"	=> "FFFFFF",
 					"roundsToShow"				=> 5,
-					"devChartLegendLocation"	=> "tr"
+					"devChartLegendLocation"	=> "tr",
+					"oobgolfCacheMinutes"		=> 60,
+					"pngCompressionLevel"		=> '9'
 				);
 		
 		/*		// Pre-2.6 compatibility   http://codex.wordpress.org/Determining_Plugin_and_Content_Directories

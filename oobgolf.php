@@ -3,7 +3,7 @@
 Plugin Name: oobgolf Widgets
 Plugin URI: http://timlaqua.com/wordpress-plugins/wordpress-plugin-oobgolf-widgets/
 Description: Collection of widgets to display oobgolf.com information on your blog
-Version: 1.0.6
+Version: 1.0.7
 Author: Tim Laqua
 Author URI: http://timlaqua.com
 */
@@ -26,6 +26,7 @@ Author URI: http://timlaqua.com
 */
 
 require_once('oobgolf.class.php');
+require_once('oobgolfWidgetsTwitter.php');
 
 add_action('plugins_loaded',array('widget_oobgolf','register'));
 add_action('wp_head',array('widget_oobgolf','addHeaderCode'));
